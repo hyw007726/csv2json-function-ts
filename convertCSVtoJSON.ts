@@ -1,9 +1,7 @@
-import * as fs from 'fs';
-import readLine from 'readline';
 
-const convertCSVtoJSON = async (
+//Convert a CSV file to JSON object
+export const convertCSVtoJSON = async (
   path: string,
-  fileName: string,
   //defaultPK will be lineNumber
   primaryKey?: string,
 ) => {
@@ -19,7 +17,9 @@ const convertCSVtoJSON = async (
      Case 3: The closing quote is in succeeding lines
     Edge case: The closing quote could have no comma connected if it is the last character in the line
     */
-  const fileStream = fs.createReadStream(path + fileName);
+  var dirArray = process.argv[1];
+  var filePath = dirArray.substring(0, dirArray.lastIndexOf('/') + 1) + path;
+  const fileStream = fs.createReadStream(filePath);
   const rl = readLine.createInterface({
     input: fileStream,
     crlfDelay: Infinity,
@@ -41,10 +41,10 @@ const convertCSVtoJSON = async (
 
         //deal with header
         if (lineNumber == 0) {
-        //Disallow line break in headers
-        if(line.includes('"')){
+          //Disallow line break in headers
+          if (line.includes('"')) {
             reject(new Error('Invalid header field'));
-        }
+          }
           line.split(',').forEach((field) => {
             field = field.replace(/markOfEscapeSign/g, '"');
             //Identify empty field names if neccessary
@@ -90,12 +90,15 @@ const convertCSVtoJSON = async (
                 brokenLine = line.substring(firstQuote + 1);
                 prevValues = line.substring(0, firstQuote).split(',');
                 lineNumber--;
-                break; //Will go to next line, enter Case 3: 
+                break; //Will go to next line, enter Case 3:
               } else {
                 //Found the closing quote
                 //save the fields and quoted content
                 let quotedString = line.substring(firstQuote + 1, secondQuote);
-                values.push(...line.substring(0, firstQuote - 1).split(','),quotedString);
+                values.push(
+                  ...line.substring(0, firstQuote - 1).split(','),
+                  quotedString,
+                );
                 if (line.length - 1 != secondQuote) {
                   //continue the loop with rest of the string
                   line = line.substring(secondQuote + 2);
@@ -121,7 +124,7 @@ const convertCSVtoJSON = async (
         lineNumber++;
       });
       rl.on('close', () => {
-        let file = fileName.split('.')[0];
+        let file = path.split('/').pop()?.split('.')[0];
         let result = {
           [`${file}`]: dataset,
         };
@@ -136,9 +139,9 @@ const convertCSVtoJSON = async (
     }
   });
 };
-        
-<!--         //Example for calling:
-convertCSVtoJSON('file path', 'example.csv')
+
+
+convertCSVtoJSON(process.argv[2])
   .then((res) => {
     if (typeof res == 'string') {
       console.log(JSON.parse(res));
@@ -147,4 +150,4 @@ convertCSVtoJSON('file path', 'example.csv')
   })
   .catch((err) => {
     console.log(err);
-  }); -->
+  });
