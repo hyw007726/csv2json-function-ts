@@ -1,8 +1,10 @@
 # csv2json-function-ts
 
-A simple function to convert a CSV file to JSON
+A simple function to convert a CSV file to JSON with notes of its implementation for purpose of learning. 
 
-##Example for calling:
+Please kindly leave comments if you find an issue.
+
+## Example for calling:
 
 ```
 ts-node convertCSVtoJSON.ts [path]filename.csv
